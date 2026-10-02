@@ -112,7 +112,7 @@ def test_func():
 
 输出
 
-![Screenshot 2026-10-02 at 20.27.20](/Users/xander/Library/Application Support/typora-user-images/Screenshot 2026-10-02 at 20.27.20.png)
+![Screenshot 2026-10-02 at 20.27.20](assets/pytest/pytest-output-20261002-202720.png)
 
 如果我们改一下函数：
 
@@ -125,7 +125,7 @@ def func(x):
 
 那么结果将会是：
 
-![Screenshot 2026-10-02 at 20.30.42](/Users/xander/Library/Application Support/typora-user-images/Screenshot 2026-10-02 at 20.30.42.png)
+![Screenshot 2026-10-02 at 20.30.42](assets/pytest/pytest-output-20261002-203042.png)
 
 这里从第二个语句开始就报错了，抛出==AssertionError==
 
@@ -148,7 +148,7 @@ def test_neg1():
     assert func(-1) == -2
 ```
 
-![Screenshot 2026-10-02 at 20.35.42](/Users/xander/Desktop/Screenshot 2026-10-02 at 20.35.42.png)
+![Screenshot 2026-10-02 at 20.35.42](assets/pytest/pytest-output-20261002-203542.png)
 
 这样我们就看到了所有情况的测试结果
 
