@@ -1,3 +1,7 @@
+# Pytest入门
+
+
+
 pytest是一个第三方库，可以帮助我们更加快且简便的测试函数，不需要写大量的if, exception等语句
 
 
@@ -144,7 +148,7 @@ def test_neg1():
     assert func(-1) == -2
 ```
 
-![Screenshot 2026-10-02 at 20.35.42](/Users/xander/Library/Application Support/typora-user-images/Screenshot 2026-10-02 at 20.35.42.png)
+![Screenshot 2026-10-02 at 20.35.42](/Users/xander/Desktop/Screenshot 2026-10-02 at 20.35.42.png)
 
 这样我们就看到了所有情况的测试结果
 
