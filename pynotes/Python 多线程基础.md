@@ -430,5 +430,361 @@ t2.join()
 
 ### Race Condition(竞态条件）和 Lock（锁）
 
+##### 什么是race condition:
+
+先看一个列子：
+```python
+import threading
+
+count = 0
 
 
+def add():
+    global count
+
+    for _ in range(100000):
+        count += 1
+
+
+t1 = threading.Thread(target=add)
+t2 = threading.Thread(target=add)
+
+t1.start()
+t2.start()
+
+t1.join()
+t2.join()
+
+print(count)
+```
+
+
+
+在这里，直觉告诉我们，最后的输出应该是:200000
+
+但事实并非如此
+
+多线程程序里，一个危险点是：
+
+```
+count += 1
+```
+
+看起来是一句话，实际上从逻辑上可以拆成：
+
+```
+temp = counttemp = temp + 1count = temp
+```
+
+也就是：
+
+```
+读取 count
+↓
+计算 count + 1
+↓
+把结果写回 count
+```
+
+问题就来了。
+
+假设：
+
+```
+count = 10
+```
+
+线程 1 开始：
+
+```
+线程1读取 count
+得到 10
+```
+
+然后操作系统突然切换到线程 2：
+
+```
+线程2读取 count
+也得到 10
+
+线程2计算：
+10 + 1 = 11
+
+线程2写回：
+count = 11
+```
+
+然后再切回线程 1：
+
+```
+线程1之前读到的是 10
+
+所以线程1计算：
+10 + 1 = 11
+
+线程1写回：
+count = 11
+```
+
+两个线程明明各加了一次，本来应该：
+
+```
+10 → 11 → 12
+```
+
+结果却变成：
+
+```
+10 → 11
+```
+
+其中一次修改丢失了。
+
+这就是典型的：
+
+> **Race Condition，竞态条件。**
+
+可以把 Race Condition 定义成：
+
+> 多个线程并发访问和修改共享资源时，由于执行顺序的不确定性，导致程序结果不确定或错误。
+
+
+
+那么怎么解决这个问题？
+
+## 使用Lock
+
+Python 提供：
+
+```
+threading.Lock()
+```
+
+例如：
+
+```
+lock = threading.Lock()
+```
+
+它相当于创建了一把锁。
+
+然后修改共享资源的时候：
+
+```
+with lock:    ...
+```
+
+完整代码：
+
+```python
+import threading
+import time
+
+count = 0
+lock = threading.Lock()
+
+
+def add():
+    global count
+
+    for _ in range(1000):
+        with lock:
+            temp = count
+
+            time.sleep(0.0001)
+
+            temp += 1
+            count = temp
+
+
+t1 = threading.Thread(target=add)
+t2 = threading.Thread(target=add)
+
+t1.start()
+t2.start()
+
+t1.join()
+t2.join()
+
+print(count)
+```
+
+
+
+现在应该稳定输出：
+
+```
+2000
+```
+
+假设线程 1 先执行：
+
+```
+with lock:
+```
+
+它拿到了锁。
+
+可以理解成：
+
+```
+线程1
+↓
+拿钥匙
+↓
+进入房间
+↓
+修改共享数据
+```
+
+此时线程 2 也执行：
+
+```
+with lock:
+```
+
+但发现：
+
+```
+锁已经在线程1手里
+```
+
+所以线程 2 只能等。
+
+等线程 1 执行完：
+
+```
+with lock:    ...
+```
+
+线程 1 自动释放锁。
+
+然后线程 2 才能进去。所以这样就避免了两个线程互相竞争的情况
+
+
+
+
+
+# `acquire()` 和 `release()`
+
+`with lock:` 本质上是更方便的写法。
+
+你也可以写：
+
+```
+lock.acquire()count += 1lock.release()
+```
+
+意思分别是：
+
+```
+lock.acquire()
+```
+
+拿锁。
+
+```
+lock.release()
+```
+
+释放锁。
+
+但是更推荐：
+
+```
+with lock:    count += 1
+```
+
+因为如果中间报错：
+
+```
+lock.acquire()count += 1# 这里报错lock.release()
+```
+
+那么：
+
+```
+lock.release()
+```
+
+可能根本执行不到。
+
+锁一直没释放，其他线程就可能永远等着。
+
+而：
+
+```
+with lock:
+```
+
+会帮助你正确管理锁。
+
+所以实际写代码通常优先：
+
+```
+with lock:    ...
+```
+
+------
+
+# 8. 什么是临界区 Critical Section？
+
+这一段：
+
+```
+with lock:    count += 1
+```
+
+里面真正需要保护的代码叫：
+
+> **Critical Section，临界区。**
+
+也就是：
+
+> 操作共享资源、不能让多个线程同时执行的那一小段代码。
+
+例如：
+
+```python
+def task():
+    do_something()
+
+    with lock:
+        shared_data += 1
+
+    do_something_else()
+```
+
+
+
+只有：
+
+```
+shared_data += 1
+```
+
+真正需要加锁。
+
+一般原则是：
+
+> **只锁真正需要保护的共享资源操作。**
+
+例如：
+
+```python
+def task():
+    time.sleep(5)
+
+    with lock:
+        count += 1
+```
+
+
+
+这样：
+
+```
+sleep 期间大家都可以并发
+```
+
+只有最后修改 `count` 时才排队。
