@@ -22,7 +22,6 @@
 | --- | --- | --- |
 | Python 正则表达式 | [在掘金阅读](https://juejin.cn/post/7691498553261441064) | [正则表达式.md](./正则表达式.md) |
 | pytest 入门 | [在掘金阅读](https://juejin.cn/post/7691537889868333091) | [pytest.md](./pytest.md) |
-| Linux 目录结构 | [在掘金阅读](https://juejin.cn/post/7692445075250790438) | — |
 
 ## 建议阅读顺序
 
